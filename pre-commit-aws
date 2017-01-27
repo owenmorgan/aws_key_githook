@@ -9,7 +9,7 @@ findChanges()
 {
   read FILES
 
-  SECRET_PATTERN="[A-Za-z0-9/\+=]{40}"
+  SECRET_PATTERN="[^0-9A-Za-z/+=]*/"
   if [ -n "$FILES" ]; then
     egrep -n "($SECRET_PATTERN)" $FILES 
   else
