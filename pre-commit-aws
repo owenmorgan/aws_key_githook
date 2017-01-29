@@ -1,37 +1,53 @@
-#! /bin/sh
+#!/usr/bin/php
+<?php
 
-findFilesChanged()
-{
-  git diff --staged --name-only | tr '\n' ' '
+$checks = array();
+
+$check = new stdClass();
+$check->name = "AWS Secret";
+$check->regex = '/(?<![A-Za-z0-9\/+=])[A-Za-z0-9\/+=]{40}(?![A-Za-z0-9\/+=])/';
+
+$checks[] = $check;
+
+$changes = getChangedFile();
+$error = null;
+
+if(!is_null($changes)) {
+  foreach($changes as $change) {
+      $content = file_get_contents($change);
+      if(strlen($content)) {
+        foreach($checks as $check) {
+            if(property_exists($check, "regex") and strlen($check->regex)) {
+                preg_match($check->regex, $content, $matches);
+                if(count($matches)) {
+                    $error = "Found suspected " .$check->name." " . $matches[0] . " in file:$change";
+                }
+            }
+        }
+      }
+  }
 }
 
-findChanges()
-{
-  read FILES
-
-  SECRET_PATTERN="[^0-9A-Za-z/+=]*/"
-  if [ -n "$FILES" ]; then
-    egrep -n "($SECRET_PATTERN)" $FILES 
-  else
-    echo ""
-  fi
+if(!is_null($error)) {
+    echo $error;
+    echo "If you are 100% confident that these changes are safe, then you can circumvent this check by committing from the command line using the  --no-verify  flag:\n\tgit commit --no-verify";
+    echo PHP_EOL;
+    exit(1);
 }
 
-report()
-{
-  read CREDENTIALS
+exit(0);
 
-  if [ -n "$CREDENTIALS" ]; then
-    echo "AWS credentials found:"
-    echo $CREDENTIALS
-    while read CREDENTIALS; do
-      echo $CREDENTIALS
-    done
-    echo "If you are 100% confident that these changes are safe, then you can circumvent this check by committing from the command line using the  --no-verify  flag:\n\tgit commit --no-verify"
-    exit 1
-  else
-    exit 0
-  fi
+function getChangedFile() {
+  $cmd = "git diff --staged --name-only | tr '\n' ' '";
+  $res = exec($cmd);
+  if(strlen($res)>0) {
+    $res = explode(" ", $res);
+  }
+  else {
+    $res = null;
+  }
+  return($res);
 }
 
-findFilesChanged | findChanges | report
+
+?>
