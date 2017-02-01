@@ -27,14 +27,14 @@ if(!is_null($changes)) {
                     if($check->name==AWS_SECRET && (property_exists($check, "regex") and strlen($check->regex))) {
                         preg_match($check->regex, $content, $matches);
                         if(count($matches)) {
-                            $error = "Found suspected " .$check->name." " . $matches[0] . " in file:$change";
+                            $error = "Found suspected AWS Secret Key '" . $matches[0] . "' in file : $change";
                         }
                     }
                     if($check->name==JSON_VALIDATE) {
                         $ext = pathinfo($change, PATHINFO_EXTENSION);
                         if(strtolower($ext)=="json") {
                             if(!isJson($content)) {
-                                $error = "Invalid JSON found in file: $change ";
+                                $error = "Invalid JSON found in file : $change ";
                             }
                         }
                     }
