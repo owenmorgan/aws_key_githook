@@ -2,16 +2,17 @@
 <?php
 
 const JSON_VALIDATE = "VALIDATE_JSON";
+
 $checks = array();
 
-$check = new stdClass();
-$check->name = "AWS Secret";
-$check->regex = '/(?<![A-Za-z0-9\/+=])[A-Za-z0-9\/+=]{40}(?![A-Za-z0-9\/+=])/';
-$checks[] = $check;
+$checkAWSSecret = new stdClass();
+$checkAWSSecret->name = "AWS Secret";
+$checkAWSSecret->regex = '/(?<![A-Za-z0-9\/+=])[A-Za-z0-9\/+=]{40}(?![A-Za-z0-9\/+=])/';
+$checks[] = $checkAWSSecret;
 
-$checkB = new stdClass();
-$checkB->name = JSON_VALIDATE;
-$checks[] = $checkB;
+$checkJSON = new stdClass();
+$checkJSON->name = JSON_VALIDATE;
+$checks[] = $checkJSON;
 
 $changes = getChangedFile();
 $error = null;
