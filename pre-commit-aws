@@ -2,11 +2,12 @@
 <?php
 
 const JSON_VALIDATE = "VALIDATE_JSON";
+const AWS_SECRET = "AWS_SECRET";
 
 $checks = array();
 
 $checkAWSSecret = new stdClass();
-$checkAWSSecret->name = "AWS Secret";
+$checkAWSSecret->name = AWS_SECRET;
 $checkAWSSecret->regex = '/(?<![A-Za-z0-9\/+=])[A-Za-z0-9\/+=]{40}(?![A-Za-z0-9\/+=])/';
 $checks[] = $checkAWSSecret;
 
@@ -22,17 +23,19 @@ if(!is_null($changes)) {
         $content = file_get_contents($change);
         if(strlen($content)) {
             foreach($checks as $check) {
-                if(property_exists($check, "regex") and strlen($check->regex)) {
-                    preg_match($check->regex, $content, $matches);
-                    if(count($matches)) {
-                        $error = "Found suspected " .$check->name." " . $matches[0] . " in file:$change";
+                if(property_exists($check, "name")) {
+                    if($check->name==AWS_SECRET && (property_exists($check, "regex") and strlen($check->regex))) {
+                        preg_match($check->regex, $content, $matches);
+                        if(count($matches)) {
+                            $error = "Found suspected " .$check->name." " . $matches[0] . " in file:$change";
+                        }
                     }
-                }
-                if(property_exists($check, "name") and $check->name==JSON_VALIDATE) {
-                    $ext = pathinfo($change, PATHINFO_EXTENSION);
-                    if(strtolower($ext)=="json") {
-                        if(!isJson($content)) {
-                            $error = "Invalid JSON found in file: $change ";
+                    if($check->name==JSON_VALIDATE) {
+                        $ext = pathinfo($change, PATHINFO_EXTENSION);
+                        if(strtolower($ext)=="json") {
+                            if(!isJson($content)) {
+                                $error = "Invalid JSON found in file: $change ";
+                            }
                         }
                     }
                 }
